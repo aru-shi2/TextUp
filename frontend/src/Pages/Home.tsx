@@ -1,7 +1,21 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { nanoid } from 'nanoid'
+import { useNavigate } from 'react-router-dom';
 
 export default function Home() {
+    const [Code, setCode] = useState("")
+    const navigate=useNavigate()
+
+    const handleCreate=async() => {
+      const id=nanoid(5)
+      await setCode(id);
+    }
+    
+    const handleJoin=()=>{
+        navigate("/room")
+    }
   return (
+
     <div className="min-h-screen bg-[#0d0915] text-[#fff] font-mono p-6 md:p-12 relative overflow-hidden flex flex-col justify-between selection:bg-[#ff007f] selection:text-black">
       
       {/* Retro Grid / Dot Background Pattern */}
@@ -64,24 +78,24 @@ export default function Home() {
             
             {/* Create Room Block */}
             <div className="space-y-4">
-              <button className="w-full py-3 px-4 bg-[#ff007f] hover:bg-[#e00070] text-white font-black text-base border-4 border-black shadow-[4px_4px_0px_0px_#000] transition-all hover:translate-x-[2px] hover:translate-y-[2px] uppercase tracking-wider active:translate-x-[4px] active:translate-y-[4px] active:shadow-none">
+              <button onClick={handleCreate} className="w-full py-3 px-4 bg-[#ff007f] hover:bg-[#e00070] text-white font-black text-base border-4 border-black shadow-[4px_4px_0px_0px_#000] transition-all hover:translate-x-[2px] hover:translate-y-[2px] uppercase tracking-wider active:translate-x-[4px] active:translate-y-[4px] active:shadow-none">
                 ⚡ Create A Room
               </button>
 
               {/* Hardcoded Active Code and Copy Block */}
-              <div className="bg-[#00ffff] border-4 border-black p-3.5 shadow-[4px_4px_0px_0px_#000] rotate-[-1deg]">
+            {Code && <div className="bg-[#00ffff] border-4 border-black p-3.5 shadow-[4px_4px_0px_0px_#000] rotate-[-1deg]">
                 <div className="text-[10px] font-black uppercase tracking-widest text-black mb-1.5">
                   🔥 Room Active! Share Code:
                 </div>
-                <div className="flex gap-2">
+                 <div className="flex gap-2">
                   <div className="flex-grow bg-white border-4 border-black px-3 py-2 text-sm md:text-base font-black tracking-widest text-black flex items-center justify-center select-all">
-                    TEXTUP-X97
+                    {Code}
                   </div>
-                  <button className="bg-black hover:bg-zinc-800 text-[#39ff14] font-black text-xs px-4 border-4 border-black shadow-[2px_2px_0px_0px_#000] hover:shadow-[1px_1px_0px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none uppercase tracking-widest transition-all">
+                  <button onClick={()=>navigator.clipboard.writeText(Code)} className="bg-black hover:bg-zinc-800 text-[#39ff14] font-black text-xs px-4 border-4 border-black shadow-[2px_2px_0px_0px_#000] hover:shadow-[1px_1px_0px_0px_#000] hover:translate-x-[1px] hover:translate-y-[1px] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none uppercase tracking-widest transition-all">
                     Copy
                   </button>
                 </div>
-              </div>
+              </div>}
 
             </div>
 
@@ -94,16 +108,16 @@ export default function Home() {
 
             {/* Join Room Block */}
             <div className="space-y-3">
-              <label className="block text-xs font-black uppercase tracking-widest text-black">
+              <label className="block text-xs font-black tracking-widest text-black">
                 Enter Secret Passage Code:
               </label>
               <div className="flex flex-col gap-3">
                 <input 
                   type="text" 
                   placeholder="EX: CRASH-69" 
-                  className="w-full px-4 py-3 bg-white border-4 border-black text-black placeholder-slate-500 font-black focus:outline-none focus:bg-[#00ffff] focus:placeholder-black text-base uppercase tracking-widest shadow-[4px_4px_0px_0px_#000]"
+                  className="w-full px-4 py-3 bg-white border-4 border-black text-black placeholder-slate-500 font-black focus:outline-none focus:bg-[#00ffff] focus:placeholder-black text-base tracking-widest shadow-[4px_4px_0px_0px_#000]"
                 />
-                <button className="w-full py-3.5 bg-black hover:bg-zinc-800 text-[#39ff14] font-black text-base border-4 border-black shadow-[4px_4px_0px_0px_#ff007f] hover:shadow-[2px_2px_0px_0px_#ff007f] transition-all hover:translate-x-[2px] hover:translate-y-[2px] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none uppercase">
+                <button onClick={handleJoin} className="w-full py-3.5 bg-black hover:bg-zinc-800 text-[#39ff14] font-black text-base border-4 border-black shadow-[4px_4px_0px_0px_#ff007f] hover:shadow-[2px_2px_0px_0px_#ff007f] transition-all hover:translate-x-[2px] hover:translate-y-[2px] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none uppercase">
                   Join Active Room →
                 </button>
               </div>
