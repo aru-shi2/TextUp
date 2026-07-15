@@ -1,30 +1,16 @@
-import { useEffect, useState, useRef } from "react";
+import {BrowserRouter, Routes, Route} from "react-router-dom"
+import Room from "./Pages/Room"
 
 function App() {
-  const [socket, setsocket] = useState()
-  const inputRef=useRef(null);
-
-  const handleSend=() => {
-    
-  }
-  
-useEffect(() => {
-  const ws=new WebSocket("ws://localhost:8080");
-  setsocket(ws);
-    ws.onmessage=(event)=>{
-      alert(event.data)
-    }
-}, [])
-
 
   return (
     <>
-      <div>
-          <div className="inp flex justify-center items-center bg-purple-200">
-              <input ref={inputRef} type="text" placeholder="write here..." />
-              <button onClick={handleSend}>Send</button>
-          </div>
-      </div>
+      <BrowserRouter>
+        <Routes>
+          {/* ./:roomId */}
+            <Route path="/" element={<Room/>}/>
+        </Routes>
+      </BrowserRouter>
     </>
   )
 }
