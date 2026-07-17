@@ -111,7 +111,7 @@ export default function RoomPage({ socket, senderId }: RoomProps) {
           </div>
 
           {/* message */}
-          <div className="absolute inset-x-0 top-[45px] bottom-[90px] p-4 space-y-4 overflow-y-auto bg-zinc-50 flex flex-col justify-start">
+          <div className="absolute inset-x-0 top-11.25 bottom-22.5 p-4 space-y-4 overflow-y-auto bg-zinc-50 flex flex-col justify-start">
 
             {Messages?.map((msg, index) => msg.senderId===senderId? 
             ( 

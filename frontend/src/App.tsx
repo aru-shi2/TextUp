@@ -8,7 +8,7 @@ function App() {
 
   const [socket, setsocket] = useState<WebSocket | null>(null)
 
-  const [senderId, setsenderId] = useState(localStorage.getItem("senderId")||nanoid(6))
+  const [senderId] = useState(localStorage.getItem("senderId")||nanoid(6))
 
   useEffect(() => {
     localStorage.setItem("senderId", senderId)
