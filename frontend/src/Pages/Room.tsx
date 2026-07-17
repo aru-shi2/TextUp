@@ -1,8 +1,59 @@
+import { useEffect, useRef, useState } from "react";
+import { useParams } from "react-router-dom";
 
-export default function RoomPage() {
+interface RoomProps {
+  socket: WebSocket | null;
+}
+
+export default function RoomPage({ socket }: RoomProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [Messages, setMessages] = useState <{message: string, senderId: string}[]>([]);
+  const [mySenderId, setmySenderId] = useState("")
+  const {roomId}=useParams()
+
+  const handleSend = () => {
+    if (!socket || socket.readyState !== WebSocket.OPEN || !inputRef.current) {
+      return;
+    }
+    const msgData = JSON.stringify({
+      type: "chat",
+      payload: {
+        message: inputRef.current.value,
+      },
+    });
+    socket?.send(msgData);
+  };
+
+  useEffect(() => {
+    if(!socket){
+      return;
+    }
+      socket.onmessage = (e) => {
+        const data=JSON.parse(e.data)
+        if(data.type==="chat"){
+        setMessages((prev)=>[...prev, {
+          message:data.payload.message,
+          senderId:data.payload.senderId
+        }])
+        }
+        if(data.type==="init"){
+          setmySenderId(data.payload.senderId)
+        }
+      };
+
+      socket.onopen=()=>{
+        const joinData=JSON.stringify({
+        "type":"join",
+        "payload":{
+          "roomId":roomId
+        }
+        })
+        socket.send(joinData)
+      }
+  }, [socket]);
+
   return (
     <div className="min-h-screen bg-[#0d0915] text-white font-mono p-4 md:p-8 relative overflow-hidden flex flex-col justify-between selection:bg-[#ff007f] selection:text-black">
-      
       {/* Retro Grid Background Pattern */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#1b1329_1px,transparent_1px),linear-gradient(to_bottom,#1b1329_1px,transparent_1px)] bg-size-[32px_32px] opacity-60 pointer-events-none" />
 
@@ -24,16 +75,18 @@ export default function RoomPage() {
 
       {/* Main Workspace Grid */}
       <main className="w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch z-10 grow my-auto">
-        
         {/* Left Side: Sidebar / Room Info (4 Columns) */}
         <div className="lg:col-span-3 space-y-6 flex flex-col">
-          
           {/* Active Profile Info */}
           <div className="bg-[#fcf800] border-4 border-black text-black p-4 shadow-[4px_4px_0px_0px_#ff007f] -rotate-1">
-            <span className="block text-[10px] font-black uppercase tracking-widest opacity-80 mb-1">YOUR IDENTITY:</span>
+            <span className="block text-[10px] font-black uppercase tracking-widest opacity-80 mb-1">
+              YOUR IDENTITY:
+            </span>
             <div className="bg-white border-2 border-black px-3 py-1.5 font-black text-sm flex items-center justify-between">
-              <span>⚡ ANONYMOUS_PUNK</span>
-              <span className="text-xs bg-[#ff007f] text-white px-1 border border-black">YOU</span>
+              <span>⚡ {`user_${mySenderId}`}</span>
+              <span className="text-xs bg-[#ff007f] text-white px-1 border border-black">
+                YOU
+              </span>
             </div>
           </div>
 
@@ -66,32 +119,62 @@ export default function RoomPage() {
           {/* Chat Stream Header */}
           <div className="bg-zinc-100 border-b-4 border-black p-3 font-black text-xs uppercase tracking-widest flex justify-between items-center">
             <span>📡 ENCRYPTED CHAT PACKETS</span>
-            <span className="bg-black text-[#fcf800] px-2 py-0.5 border-2 border-black text-[10px]">BUFFER: READY</span>
+            <span className="bg-black text-[#fcf800] px-2 py-0.5 border-2 border-black text-[10px]">
+              BUFFER: READY
+            </span>
+          </div>
+
+          {/* message */}
+          <div className="absolute inset-x-0 top-[45px] bottom-[90px] p-4 space-y-4 overflow-y-auto bg-zinc-50 flex flex-col justify-start">
+
+            {Messages?.map((msg, index) => msg.senderId===mySenderId? (
+              <div key={index} className="flex flex-col items-start space-y-1 self-start">
+                <span className="font-mono text-[10px] font-black uppercase text-zinc-500 tracking-wider">
+                  {`user_${mySenderId}`}
+                </span>
+                <div className="bg-[#00ffff] border-2 border-black p-3 max-w-xs sm:max-w-md shadow-[3px_3px_0px_0px_#000] text-sm font-bold tracking-tight text-black">
+                  {msg.message}
+                </div>
+              </div>
+            ):
+            (<div key={index} className="flex flex-col items-end space-y-1 w-full">
+              <span className="font-mono text-[10px] font-black uppercase text-[#ff007f] tracking-wider">
+                ⚡ YOU
+              </span>
+              <div className="bg-[#fcf800] border-2 border-black p-3 max-w-xs sm:max-w-md shadow-[3px_3px_0px_0px_#000] text-sm font-black tracking-tight text-black">
+                {msg.message}
+              </div>
+            </div>
+        )
+          )}
           </div>
 
           {/* Chat Input Dock */}
           <div className="border-t-4 bottom-0 absolute w-full border-black p-4 bg-zinc-100">
             <div className="flex flex-col sm:flex-row gap-3">
-              <input 
-   
-                type="text" 
-                placeholder="TYPE MALICIOUSLY LOUD TEXT HERE..." 
+              <input
+                ref={inputRef}
+                type="text"
+                placeholder="TYPE MALICIOUSLY LOUD TEXT HERE..."
                 className="grow px-4 py-3.5 bg-white border-4 border-black text-black placeholder-zinc-500 font-mono font-black focus:outline-none focus:bg-[#00ffff] text-sm md:text-base tracking-wider shadow-[4px_4px_0px_0px_#000]"
               />
-              <button className="sm:w-32 py-3.5 bg-black hover:bg-zinc-800 text-[#39ff14] font-mono font-black text-base border-4 border-black shadow-[4px_4px_0px_0px_#ff007f] hover:shadow-[2px_2px_0px_0px_#ff007f] transition-all hover:translate-x-0.5 hover:translate-y-0.5 active:translate-x-1 active:translate-y-1 active:shadow-none uppercase tracking-widest">
+              <button
+                onClick={handleSend}
+                className="sm:w-32 py-3.5 bg-black hover:bg-zinc-800 text-[#39ff14] font-mono font-black text-base border-4 border-black shadow-[4px_4px_0px_0px_#ff007f] hover:shadow-[2px_2px_0px_0px_#ff007f] transition-all hover:translate-x-0.5 hover:translate-y-0.5 active:translate-x-1 active:translate-y-1 active:shadow-none uppercase tracking-widest"
+              >
                 SEND ⚡
               </button>
             </div>
           </div>
-
         </div>
-
       </main>
 
       {/* Footer */}
       <footer className="w-full max-w-7xl mx-auto border-t-4 border-black pt-4 mt-6 flex flex-col md:flex-row justify-between items-center gap-4 z-10 text-xs font-black text-slate-500 uppercase tracking-widest">
         <div>© 2026 TEXTUP INC. CODES ARE FOR CLOSERS.</div>
-        <div className="bg-[#ff007f] text-white px-2 py-0.5 border-2 border-black shadow-[2px_2px_0px_0px_#000]">ROOM STATE: ACTIVE</div>
+        <div className="bg-[#ff007f] text-white px-2 py-0.5 border-2 border-black shadow-[2px_2px_0px_0px_#000]">
+          ROOM STATE: ACTIVE
+        </div>
       </footer>
 
       {/* Styled text outlines styling using inline CSS injection */}

@@ -22,7 +22,7 @@ function App() {
       <BrowserRouter>
         <Routes>
             <Route path="/" element={<Home socket={socket}/>}/>
-            <Route path="/:roomid" element={<Room/>}/>
+            <Route path="/:roomid" element={<Room socket={socket}/>}/>
         </Routes>
       </BrowserRouter>
     </>
