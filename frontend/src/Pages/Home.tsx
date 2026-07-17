@@ -1,29 +1,40 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { nanoid } from 'nanoid'
 import { useNavigate } from 'react-router-dom';
 
 interface HomeProps{
-  socket: WebSocket|null
+  socket: WebSocket|null,
+  senderId: string|null
 }
 
-export default function Home({socket}:HomeProps) {
+export default function Home({socket, senderId}:HomeProps) {
 
-    const [Code, setCode] = useState("")
+    const [Code, setCode] = useState(localStorage.getItem("roomId")||nanoid(5))
+
+    useEffect(()=>{
+      localStorage.setItem("roomId",Code)
+    },[Code])
+
     const navigate=useNavigate()
 
     const handleCreate=async() => {
-      const id=nanoid(5)
-      setCode(id);
+      const id=nanoid(6);
+      setCode(id)
     }
     
     const handleJoin=()=>{
+      if(!socket || socket.readyState!==WebSocket.OPEN){
+        return;
+      }
+
       const joinData=JSON.stringify({
         "type":"join",
         "payload":{
-          "roomId":Code
+          "roomId":Code,
+          senderId
         }
         })
-        socket?.send(joinData)
+        socket.send(joinData)
         navigate(`/${Code}`)
     }
   return (
@@ -125,6 +136,8 @@ export default function Home({socket}:HomeProps) {
               </label>
               <div className="flex flex-col gap-3">
                 <input 
+                value={Code}
+                onChange={(e)=>setCode(e.target.value)}
                   type="text" 
                   placeholder="EX: CRASH-69" 
                   className="w-full px-4 py-3 bg-white border-4 border-black text-black placeholder-slate-500 font-black focus:outline-none focus:bg-[#00ffff] focus:placeholder-black text-base tracking-widest shadow-[4px_4px_0px_0px_#000]"

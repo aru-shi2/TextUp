@@ -1,15 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
 
 interface RoomProps {
-  socket: WebSocket | null;
+  socket: WebSocket | null,
+  senderId: string | null
 }
 
-export default function RoomPage({ socket }: RoomProps) {
+export default function RoomPage({ socket, senderId }: RoomProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [Messages, setMessages] = useState <{message: string, senderId: string}[]>([]);
-  const [mySenderId, setmySenderId] = useState("")
-  const {roomId}=useParams()
 
   const handleSend = () => {
     if (!socket || socket.readyState !== WebSocket.OPEN || !inputRef.current) {
@@ -22,6 +20,7 @@ export default function RoomPage({ socket }: RoomProps) {
       },
     });
     socket?.send(msgData);
+    inputRef.current.value=""
   };
 
   useEffect(() => {
@@ -36,20 +35,7 @@ export default function RoomPage({ socket }: RoomProps) {
           senderId:data.payload.senderId
         }])
         }
-        if(data.type==="init"){
-          setmySenderId(data.payload.senderId)
-        }
       };
-
-      socket.onopen=()=>{
-        const joinData=JSON.stringify({
-        "type":"join",
-        "payload":{
-          "roomId":roomId
-        }
-        })
-        socket.send(joinData)
-      }
   }, [socket]);
 
   return (
@@ -83,7 +69,7 @@ export default function RoomPage({ socket }: RoomProps) {
               YOUR IDENTITY:
             </span>
             <div className="bg-white border-2 border-black px-3 py-1.5 font-black text-sm flex items-center justify-between">
-              <span>⚡ {`user_${mySenderId}`}</span>
+              <span>⚡ {`user_${senderId}`}</span>
               <span className="text-xs bg-[#ff007f] text-white px-1 border border-black">
                 YOU
               </span>
@@ -127,17 +113,9 @@ export default function RoomPage({ socket }: RoomProps) {
           {/* message */}
           <div className="absolute inset-x-0 top-[45px] bottom-[90px] p-4 space-y-4 overflow-y-auto bg-zinc-50 flex flex-col justify-start">
 
-            {Messages?.map((msg, index) => msg.senderId===mySenderId? (
-              <div key={index} className="flex flex-col items-start space-y-1 self-start">
-                <span className="font-mono text-[10px] font-black uppercase text-zinc-500 tracking-wider">
-                  {`user_${mySenderId}`}
-                </span>
-                <div className="bg-[#00ffff] border-2 border-black p-3 max-w-xs sm:max-w-md shadow-[3px_3px_0px_0px_#000] text-sm font-bold tracking-tight text-black">
-                  {msg.message}
-                </div>
-              </div>
-            ):
-            (<div key={index} className="flex flex-col items-end space-y-1 w-full">
+            {Messages?.map((msg, index) => msg.senderId===senderId? 
+            ( 
+            <div key={index} className="flex flex-col items-end space-y-1 w-full">
               <span className="font-mono text-[10px] font-black uppercase text-[#ff007f] tracking-wider">
                 ⚡ YOU
               </span>
@@ -145,7 +123,16 @@ export default function RoomPage({ socket }: RoomProps) {
                 {msg.message}
               </div>
             </div>
-        )
+        ):(
+              <div key={index} className="flex flex-col items-start space-y-1 self-start">
+                <span className="font-mono text-[10px] font-black uppercase text-zinc-500 tracking-wider">
+                  {`user_${msg.senderId}`}
+                </span>
+                <div className="bg-[#00ffff] border-2 border-black p-3 max-w-xs sm:max-w-md shadow-[3px_3px_0px_0px_#000] text-sm font-bold tracking-tight text-black">
+                  {msg.message}
+                </div>
+              </div>
+            )
           )}
           </div>
 

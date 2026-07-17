@@ -13,17 +13,6 @@ const allSockets: User[] = [];
 wss.on("connection", function (socket) {
   console.log("user connected");
 
-const idd = nanoid(6);
-
-  socket.send(
-    JSON.stringify({
-      type: "init",
-      payload: {
-        senderId: idd,
-      },
-    }),
-  );
-
   socket.on("error", console.error);
 
   socket.on("message", (data) => {
@@ -33,7 +22,7 @@ const idd = nanoid(6);
       allSockets.push({
         socket,
         room: msg.payload.roomId,
-        senderId: idd,
+        senderId: msg.payload.senderId,
       });
     }
 
