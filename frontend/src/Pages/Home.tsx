@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useRef, useState } from 'react';
 import { nanoid } from 'nanoid'
 import { useNavigate } from 'react-router-dom';
 
@@ -8,35 +8,42 @@ interface HomeProps{
 }
 
 export default function Home({socket, senderId}:HomeProps) {
+  const [Code, setCode] = useState("")
+  const [joinRoomId, setjoinRoomId] = useState("")
+  const navigate=useNavigate()
 
-    const [Code, setCode] = useState(localStorage.getItem("roomId")||nanoid(5))
-
-    useEffect(()=>{
-      localStorage.setItem("roomId",Code)
-    },[Code])
-
-    const navigate=useNavigate()
-
-    const handleCreate=async() => {
-      const id=nanoid(6);
-      setCode(id)
+  const handleCreate=() => {
+    const id=nanoid(6);
+    setCode(id)
+  }
+  
+  const handleJoin=() => {
+    if(!socket||!joinRoomId.trim()){
+      return
     }
-    
-    const handleJoin=()=>{
-      if(!socket || socket.readyState!==WebSocket.OPEN){
-        return;
+
+    const joinPayload={
+    type:"join",
+    payload:{
+      room:joinRoomId,
+      senderId:senderId
+    }
+  }
+
+    if(socket?.readyState===WebSocket.OPEN){
+      socket.send(JSON.stringify(joinPayload))
+      navigate(`/${joinRoomId}`)
+    }
+    else{
+      socket.onopen=()=>{
+        socket.send(JSON.stringify(joinPayload))
+        navigate(`/${joinRoomId}`)
       }
-
-      const joinData=JSON.stringify({
-        "type":"join",
-        "payload":{
-          "roomId":Code,
-          senderId
-        }
-        })
-        socket.send(joinData)
-        navigate(`/${Code}`)
     }
+
+  }
+  
+
   return (
 
     <div className="min-h-screen bg-[#0d0915] text-white font-mono p-6 md:p-12 relative overflow-hidden flex flex-col justify-between selection:bg-[#ff007f] selection:text-black">
@@ -135,9 +142,9 @@ export default function Home({socket, senderId}:HomeProps) {
                 Enter Secret Passage Code:
               </label>
               <div className="flex flex-col gap-3">
-                <input 
-                value={Code}
-                onChange={(e)=>setCode(e.target.value)}
+                <input
+                value={joinRoomId}
+                onChange={(e)=>setjoinRoomId(e.target.value)}
                   type="text" 
                   placeholder="EX: CRASH-69" 
                   className="w-full px-4 py-3 bg-white border-4 border-black text-black placeholder-slate-500 font-black focus:outline-none focus:bg-[#00ffff] focus:placeholder-black text-base tracking-widest shadow-[4px_4px_0px_0px_#000]"
