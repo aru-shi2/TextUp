@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useParams } from "react-router-dom";
 
 interface RoomProps {
   socket: WebSocket | null,
@@ -8,6 +9,7 @@ interface RoomProps {
 export default function RoomPage({ socket, senderId }: RoomProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [Messages, setMessages] = useState <{message: string, senderId: string}[]>([]);
+  const {roomId}=useParams()
 
   const handleSend = () => {
     if (!socket || socket.readyState !== WebSocket.OPEN || !inputRef.current) {
@@ -17,11 +19,12 @@ export default function RoomPage({ socket, senderId }: RoomProps) {
       type: "chat",
       payload: {
         message: inputRef.current.value,
-      },
+      }
     });
     socket?.send(msgData);
     inputRef.current.value=""
   };
+
 
   useEffect(() => {
     if(!socket){
@@ -37,6 +40,31 @@ export default function RoomPage({ socket, senderId }: RoomProps) {
         }
       };
   }, [socket]);
+
+   useEffect(() => {
+    if (!socket || !roomId) {
+      return;
+    }
+    console.log(roomId)
+    const joinRoom = () => {
+      const joinPayload = {
+        type: "join",
+        payload: {
+          room: roomId,
+          senderId,
+        },
+      };
+
+      socket.send(JSON.stringify(joinPayload));
+    };
+    if (socket.readyState === WebSocket.OPEN) {
+      joinRoom();
+    } else {
+      socket.onopen = () => {
+        joinRoom();
+      };
+    }
+  }, [socket, roomId, senderId]);
 
   return (
     <div className="min-h-screen bg-[#0d0915] text-white font-mono p-4 md:p-8 relative overflow-hidden flex flex-col justify-between selection:bg-[#ff007f] selection:text-black">
@@ -79,17 +107,11 @@ export default function RoomPage({ socket, senderId }: RoomProps) {
           {/* Connected Users List Box */}
           <div className="border-4 border-black bg-black/80 p-4 shadow-[6px_6px_0px_0px_#00ffff] grow space-y-3 min-h-50">
             <h3 className="text-sm font-black text-[#39ff14] uppercase tracking-wider border-b-2 border-zinc-800 pb-1">
-              🟢 ONLINE NOW (3)
+              🟢 ONLINE NOW 
             </h3>
             <ul className="space-y-2 text-xs font-bold uppercase tracking-wide">
               <li className="flex items-center gap-2 text-[#39ff14]">
-                ⚡ ANONYMOUS_PUNK
-              </li>
-              <li className="flex items-center gap-2 text-slate-300">
-                💀 CRASH_USER_9
-              </li>
-              <li className="flex items-center gap-2 text-slate-300">
-                👽 NEO_CHATTER
+                🔸 {`user_${senderId}`}
               </li>
             </ul>
           </div>

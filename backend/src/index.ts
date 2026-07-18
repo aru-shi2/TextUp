@@ -19,15 +19,21 @@ wss.on("connection", function (socket) {
     const msg = JSON.parse(data.toString());
 
     if (msg.type == "join") {
+
+      const existingUser=allSockets.find((u)=>u.socket===socket)
+
+      if(existingUser){
+        existingUser.room=msg.payload.room
+      }
       allSockets.push({
         socket,
-        room: msg.payload.roomId,
+        room: msg.payload.room,
         senderId: msg.payload.senderId,
       });
-    }
+  }
 
     if (msg.type == "chat") {
-      const userRoom = allSockets.find((x) => x.socket == socket);
+      const userRoom = allSockets.find((x) => x.socket === socket);
       if (!userRoom) {
         return;
       }
