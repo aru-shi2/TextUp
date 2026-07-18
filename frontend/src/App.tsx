@@ -8,17 +8,13 @@ function App() {
 
   const [socket, setsocket] = useState<WebSocket | null>(null)
 
-  const [senderId] = useState(localStorage.getItem("senderId")||nanoid(6))
-
-  useEffect(() => {
-    localStorage.setItem("senderId", senderId)
-  }, [senderId])
-  
+  const [senderId, setsenderId] = useState("")
 
   useEffect(() => {
     const ws=new WebSocket("ws://localhost:8080")
 
     setsocket(ws);
+    setsenderId(nanoid(6))
 
     return()=>{
       ws.close();

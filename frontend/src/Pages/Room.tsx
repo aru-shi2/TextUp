@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 interface RoomProps {
   socket: WebSocket | null,
@@ -10,6 +11,7 @@ export default function RoomPage({ socket, senderId }: RoomProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [Messages, setMessages] = useState <{message: string, senderId: string}[]>([]);
   const {roomId}=useParams()
+  const navigate=useNavigate()
 
   const handleSend = () => {
     if (!socket || socket.readyState !== WebSocket.OPEN || !inputRef.current) {
@@ -41,6 +43,8 @@ export default function RoomPage({ socket, senderId }: RoomProps) {
       };
   }, [socket]);
 
+
+
    useEffect(() => {
     if (!socket || !roomId) {
       return;
@@ -64,7 +68,14 @@ export default function RoomPage({ socket, senderId }: RoomProps) {
         joinRoom();
       };
     }
-  }, [socket, roomId, senderId]);
+  }, [socket, roomId]);
+
+
+  const handleLeave=() => {
+    socket?.close();
+    navigate("/")
+  }
+  
 
   return (
     <div className="min-h-screen bg-[#0d0915] text-white font-mono p-4 md:p-8 relative overflow-hidden flex flex-col justify-between selection:bg-[#ff007f] selection:text-black">
@@ -117,8 +128,8 @@ export default function RoomPage({ socket, senderId }: RoomProps) {
           </div>
 
           {/* Danger Zone Action */}
-          <button className="w-full py-3 bg-[#ff007f] hover:bg-[#e00070] text-white font-black text-sm border-4 border-black shadow-[4px_4px_0px_0px_#000] transition-all hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[2px_2px_0px_0px_#000] active:translate-x-1 active:translate-y-1 active:shadow-none uppercase tracking-wider">
-            🚨 Self-Destruct Room
+          <button onClick={handleLeave} className="w-full py-3 bg-[#ff007f] hover:bg-[#e00070] text-white font-black text-sm border-4 border-black shadow-[4px_4px_0px_0px_#000] transition-all hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[2px_2px_0px_0px_#000] active:translate-x-1 active:translate-y-1 active:shadow-none uppercase tracking-wider">
+            🚨 Leave Room
           </button>
         </div>
 
