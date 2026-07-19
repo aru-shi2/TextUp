@@ -41,6 +41,10 @@ export default function RoomPage({ socket, senderId }: RoomProps) {
         }])
         }
       };
+
+      return ()=>{
+        socket.onmessage=null
+      }
   }, [socket]);
 
 
