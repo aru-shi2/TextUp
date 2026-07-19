@@ -1,7 +1,7 @@
 import WebSocket, { WebSocketServer } from "ws";
 
-const wss = new WebSocketServer({ 
-  port: Number(process.env.PORT) || 8080 
+const wss = new WebSocketServer({
+  port: Number(process.env.PORT) || 8080,
 });
 
 interface User {
@@ -20,18 +20,36 @@ wss.on("connection", function (socket) {
     const msg = JSON.parse(data.toString());
 
     if (msg.type == "join") {
+      const existingUser = allSockets.find((u) => u.socket === socket);
 
-      const existingUser=allSockets.find((u)=>u.socket===socket)
-
-      if(existingUser){
-        existingUser.room=msg.payload.room
+      if (existingUser) {
+        existingUser.room = msg.payload.room;
       }
+      else{
       allSockets.push({
         socket,
         room: msg.payload.room,
         senderId: msg.payload.senderId,
       });
-  }
+    }
+
+      const usersInRoom = allSockets
+        .filter((user) => user.room === msg.payload.room)
+        .map((us) => us.senderId);
+
+      allSockets
+        .filter((user) => user.room === msg.payload.room)
+        .forEach((u) => {
+          u.socket.send(
+            JSON.stringify({
+              type: "users",
+              payload: {
+                users: usersInRoom,
+              },
+            }),
+          );
+        });
+    }
 
     if (msg.type == "chat") {
       const userRoom = allSockets.find((x) => x.socket === socket);
@@ -57,7 +75,25 @@ wss.on("connection", function (socket) {
   socket.on("close", () => {
     const index = allSockets.findIndex((user) => user.socket == socket);
     if (index !== -1) {
+      const room = allSockets[index]?.room
       allSockets.splice(index, 1);
+
+      const usersInRoom = allSockets
+      .filter((user) => user.room === room)
+      .map((user) => user.senderId);
+
+    allSockets
+      .filter((user) => user.room === room)
+      .forEach((user) => {
+        user.socket.send(
+          JSON.stringify({
+            type: "users",
+            payload: {
+              users: usersInRoom,
+            },
+          })
+        );
+      });
     }
   });
 });

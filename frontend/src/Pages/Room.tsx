@@ -11,7 +11,9 @@ export default function RoomPage({ socket, senderId }: RoomProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [Messages, setMessages] = useState <{message: string, senderId: string}[]>([]);
   const {roomId}=useParams()
+  const joined=useRef(false)
   const navigate=useNavigate()
+  const [Users, setUsers] = useState<string[]>([])
 
   const handleSend = () => {
     if (!socket || socket.readyState !== WebSocket.OPEN || !inputRef.current) {
@@ -40,6 +42,10 @@ export default function RoomPage({ socket, senderId }: RoomProps) {
           senderId:data.payload.senderId
         }])
         }
+
+        if(data.type==="users"){
+          setUsers(data.payload.users)
+        }
       };
 
       return ()=>{
@@ -50,11 +56,16 @@ export default function RoomPage({ socket, senderId }: RoomProps) {
 
 
    useEffect(() => {
-    if (!socket || !roomId) {
+    if (!socket || !roomId || joined.current) {
       return;
     }
     console.log(roomId)
     const joinRoom = () => {
+
+      if(joined.current){
+        return;
+      }
+
       const joinPayload = {
         type: "join",
         payload: {
@@ -64,15 +75,15 @@ export default function RoomPage({ socket, senderId }: RoomProps) {
       };
 
       socket.send(JSON.stringify(joinPayload));
+
+      joined.current=true;
     };
     if (socket.readyState === WebSocket.OPEN) {
       joinRoom();
     } else {
-      socket.onopen = () => {
-        joinRoom();
-      };
+      socket.onopen = joinRoom
     }
-  }, [socket, roomId]);
+  }, [socket, roomId, senderId]);
 
 
   const handleLeave=() => {
@@ -124,10 +135,12 @@ export default function RoomPage({ socket, senderId }: RoomProps) {
             <h3 className="text-sm font-black text-[#39ff14] uppercase tracking-wider border-b-2 border-zinc-800 pb-1">
               🟢 ONLINE NOW 
             </h3>
-            <ul className="space-y-2 text-xs font-bold uppercase tracking-wide">
-              <li className="flex items-center gap-2 text-[#39ff14]">
-                🔸 {`user_${senderId}`}
-              </li>
+            <ul className="space-y-2 text-xs font-bold tracking-wide">
+              {Users.map((user)=>
+              <li key={user} className="flex items-center gap-2 text-[#39ff14]">
+                🔸 {`User_${user}`}
+              </li>)
+              }
             </ul>
           </div>
 

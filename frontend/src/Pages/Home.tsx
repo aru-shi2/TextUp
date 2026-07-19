@@ -8,7 +8,7 @@ interface HomeProps {
   senderId: string | null;
 }
 
-export default function Home({ socket, senderId }: HomeProps) {
+export default function Home({ socket }: HomeProps) {
   const [Code, setCode] = useState("");
   const [joinRoomId, setjoinRoomId] = useState("");
   const navigate = useNavigate();
@@ -23,24 +23,7 @@ export default function Home({ socket, senderId }: HomeProps) {
     if (!socket || !joinRoomId.trim()) {
       return;
     }
-
-    const joinPayload = {
-      type: "join",
-      payload: {
-        room: joinRoomId,
-        senderId: senderId,
-      },
-    };
-
-    if (socket?.readyState === WebSocket.OPEN) {
-      socket.send(JSON.stringify(joinPayload));
-      navigate(`/${joinRoomId}`);
-    } else {
-      socket.onopen = () => {
-        socket.send(JSON.stringify(joinPayload));
-        navigate(`/${joinRoomId}`);
-      };
-    }
+    navigate(`/${joinRoomId}`)
   };
 
 

@@ -10,7 +10,7 @@ function App() {
   const [senderId, setsenderId] = useState("");
 
   useEffect(() => {
-    const ws = new WebSocket(import.meta.env.VITE_BACKEND_URL);
+    const ws = new WebSocket("ws://localhost:8080");
 
     ws.onopen = () => {
       console.log("Connected");
