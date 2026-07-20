@@ -20,10 +20,17 @@ export default function Home({ socket }: HomeProps) {
   };
 
   const handleJoin = () => {
-    if (!socket || !joinRoomId.trim()) {
+    if (!socket||!joinRoomId.trim()) {
       return;
     }
+    if(socket.readyState===WebSocket.OPEN){
     navigate(`/${joinRoomId}`)
+    }
+    else{
+      socket.addEventListener("open", ()=>{
+        navigate(`/${joinRoomId}`)
+      }, {once:true})
+    }
   };
 
 

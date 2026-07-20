@@ -38,7 +38,7 @@ function App() {
         <Routes>
           <Route
             path="/"
-            element={<Home socket={socket} senderId={senderId} />}
+            element={<Home socket={socket} senderId={null}/>}
           />
           <Route
             path="/:roomId"
